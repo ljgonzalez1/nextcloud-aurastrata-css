@@ -1,0 +1,498 @@
+/* =====================================================================
+   Aurastrata · glass theme for Nextcloud 34 · v2
+   Theme-tinted glass (aurora) arranged as floating, elevated panes
+   (strata): top bar → frame → sheets → menus → dialogs.
+   Semi-flat glass: every surface is flat and only the edge shows
+   curvature (lit top edge, shaded bottom edge, thin rim).
+   v2: top bar +50 %, shadows and tints from the theme palette,
+   round avatars, notecards, inputs, Text/Notes editor and Deck in glass.
+   Paste into: Administration settings → Theming → Custom CSS
+   ===================================================================== */
+
+/* 1 · Variables (light mode and base) ---------------------------------
+   None of this applies with high contrast: Nextcloud stays native. */
+body:not([data-themes*="highcontrast"]) {
+	/* Top bar: +50 % (50 → 75 px). The pane grows from 40 to 60 px and the
+	   margin around it from 5 to 7.5 px per side (the extra 10 % padding). */
+	--glass-bar-height: 75px;
+	--glass-bar-pad: 7.5px;
+	--glass-bar-inner: 14px;       /* inner padding of the pane */
+	--glass-bar-control: 44px;     /* buttons and search field (was 34px) */
+	--glass-bar-menu: 52px;        /* width of the menu buttons */
+	--glass-bar-icon: 24px;        /* icons (was 20px) */
+	--glass-bar-avatar: 40px;      /* account avatar */
+	--glass-bar-logo: 84px;        /* logo width (was 62px) */
+	--header-height: var(--glass-bar-height) !important;
+	--body-height: calc(100% - env(safe-area-inset-bottom) - var(--header-height) - var(--body-container-margin)) !important;
+
+	/* Shape */
+	--glass-gap: 6px;                                    /* gap between frame and sheets */
+	--glass-bar-radius: var(--border-radius-container);  /* top bar (12px) */
+	--glass-tile-radius: 12px;                           /* app tiles; 50% = circle */
+
+	/* Blur */
+	--glass-blur: 26px;
+	--glass-filter: blur(var(--glass-blur)) saturate(180%) contrast(90%);
+	--glass-filter-sticky: blur(14px) saturate(150%);
+	--glass-mask-filter: blur(10px) saturate(140%);
+
+	/* Tint: background + theme primary color (lower the % for more color) */
+	--glass-tint: color-mix(in srgb, var(--color-main-background) 88%, var(--color-primary-element));
+	--glass-a-chrome: .70;
+	--glass-a-sheet: .74;
+	--glass-a-sticky: .74;
+	--glass-a-float: .76;
+	--glass-a-modal: .86;
+	--glass-chrome: rgb(from var(--glass-tint) r g b / var(--glass-a-chrome));
+	--glass-sheet: rgb(from var(--glass-tint) r g b / var(--glass-a-sheet));
+	--glass-sticky: rgb(from var(--glass-tint) r g b / var(--glass-a-sticky));
+	--glass-float: rgb(from var(--glass-tint) r g b / var(--glass-a-float));
+	--glass-modal: rgb(from var(--glass-tint) r g b / var(--glass-a-modal));
+	--glass-bar: color-mix(in srgb, var(--color-background-plain) 36%, transparent);
+	--glass-veil: color-mix(in srgb, var(--color-primary-element) 18%, rgba(10, 20, 35, .30));
+	--glass-card: rgb(from var(--glass-tint) r g b / .56);     /* cards and Readme */
+	--glass-field: rgb(from var(--glass-tint) r g b / .50);    /* text fields */
+	--glass-accent: color-mix(in srgb, var(--color-primary-element) 24%, transparent);
+
+	/* Palette: shadows and "ink" derived from the primary color */
+	--glass-shade: color-mix(in srgb, var(--color-primary-element) 32%, #0a1322);
+	--glass-ink: color-mix(in srgb, var(--color-main-text) 78%, var(--color-primary-element));
+	--glass-a-shadow: .28;
+	--glass-glow: color-mix(in srgb, var(--color-primary-element) 28%, transparent);
+
+	/* Glass edge */
+	--glass-hi: rgba(255, 255, 255, .80);        /* lit top edge */
+	--glass-hi-glow: rgba(255, 255, 255, .45);   /* light entering through the edge */
+	--glass-lo: rgb(from var(--glass-shade) r g b / .12);   /* shaded bottom edge */
+	--glass-ring: rgba(255, 255, 255, .30);      /* inner rim */
+	--glass-ring-1: rgba(255, 255, 255, .95);    /* gradient bevel: start */
+	--glass-ring-2: rgba(255, 255, 255, .16);    /* gradient bevel: middle */
+	--glass-ring-3: color-mix(in srgb, var(--color-primary-element) 55%, transparent); /* end */
+	--glass-edge: rgb(from var(--glass-shade) r g b / .14); /* outer outline */
+	--glass-bevel:
+		inset 0 1px 0 var(--glass-hi),
+		inset 0 7px 9px -9px var(--glass-hi-glow),
+		inset 0 -1px 0 var(--glass-lo),
+		inset 0 0 0 1px var(--glass-ring);
+
+	/* Elevation of each layer */
+	--glass-elev-1: 0 1px 2px rgb(from var(--glass-shade) r g b / .08), 0 3px 10px rgb(from var(--glass-shade) r g b / .10);
+	--glass-elev-2: 0 2px 4px rgb(from var(--glass-shade) r g b / .10), 0 12px 32px rgb(from var(--glass-shade) r g b / .20);
+	--glass-elev-3: 0 4px 10px rgb(from var(--glass-shade) r g b / .12), 0 22px 56px rgb(from var(--glass-shade) r g b / .28);
+
+	/* Readability and native Nextcloud hooks */
+	--color-text-maxcontrast-background-blur: #3f3f3f;
+	--glass-muted: #4a4a4a;        /* secondary text on sheets and menus */
+	--color-main-background-blur: var(--glass-chrome) !important;
+	--filter-background-blur: var(--glass-filter) !important;
+}
+
+/* 2 · Dark mode adjustments ------------------------------------------- */
+body[data-themes*="dark"]:not([data-themes*="highcontrast"]) {
+	--glass-filter: blur(var(--glass-blur)) saturate(170%) brightness(.72);
+	--glass-tint: color-mix(in srgb, var(--color-main-background) 84%, var(--color-primary-element));
+	--glass-a-chrome: .74;
+	--glass-veil: color-mix(in srgb, var(--color-primary-element) 14%, rgba(0, 0, 0, .50));
+	--glass-hi: rgba(255, 255, 255, .22);
+	--glass-hi-glow: rgba(255, 255, 255, .10);
+	--glass-shade: color-mix(in srgb, var(--color-primary-element) 22%, #000);
+	--glass-a-shadow: .55;
+	--glass-lo: rgb(from var(--glass-shade) r g b / .50);
+	--glass-ring: rgba(255, 255, 255, .07);
+	--glass-ring-1: rgba(255, 255, 255, .38);
+	--glass-ring-2: rgba(255, 255, 255, .05);
+	--glass-edge: rgb(from var(--glass-shade) r g b / .60);
+	--glass-elev-1: 0 1px 2px rgb(from var(--glass-shade) r g b / .35), 0 3px 10px rgb(from var(--glass-shade) r g b / .35);
+	--glass-elev-2: 0 2px 4px rgb(from var(--glass-shade) r g b / .40), 0 14px 36px rgb(from var(--glass-shade) r g b / .55);
+	--glass-elev-3: 0 4px 10px rgb(from var(--glass-shade) r g b / .45), 0 24px 60px rgb(from var(--glass-shade) r g b / .65);
+	--color-text-maxcontrast-background-blur: #cbcbcb;
+	--glass-muted: #adadad;
+}
+/* "System default" theme (and public pages) with the OS in dark mode */
+@media (prefers-color-scheme: dark) {
+	body:not([data-themes*="light"]):not([data-themes*="highcontrast"]) {
+		--glass-filter: blur(var(--glass-blur)) saturate(170%) brightness(.72);
+		--glass-tint: color-mix(in srgb, var(--color-main-background) 84%, var(--color-primary-element));
+		--glass-a-chrome: .74;
+		--glass-veil: color-mix(in srgb, var(--color-primary-element) 14%, rgba(0, 0, 0, .50));
+		--glass-hi: rgba(255, 255, 255, .22);
+		--glass-hi-glow: rgba(255, 255, 255, .10);
+		--glass-shade: color-mix(in srgb, var(--color-primary-element) 22%, #000);
+		--glass-a-shadow: .55;
+		--glass-lo: rgb(from var(--glass-shade) r g b / .50);
+		--glass-ring: rgba(255, 255, 255, .07);
+		--glass-ring-1: rgba(255, 255, 255, .38);
+		--glass-ring-2: rgba(255, 255, 255, .05);
+		--glass-edge: rgb(from var(--glass-shade) r g b / .60);
+		--glass-elev-1: 0 1px 2px rgb(from var(--glass-shade) r g b / .35), 0 3px 10px rgb(from var(--glass-shade) r g b / .35);
+		--glass-elev-2: 0 2px 4px rgb(from var(--glass-shade) r g b / .40), 0 14px 36px rgb(from var(--glass-shade) r g b / .55);
+		--glass-elev-3: 0 4px 10px rgb(from var(--glass-shade) r g b / .45), 0 24px 60px rgb(from var(--glass-shade) r g b / .65);
+		--color-text-maxcontrast-background-blur: #cbcbcb;
+		--glass-muted: #adadad;
+	}
+}
+
+/* 3 · Top bar: floating semi-transparent pane --------------------------
+   Drawn on pseudo-elements so the menus hanging from the header keep
+   their own blur. */
+body:not([data-themes*="highcontrast"]) #header:not(.header-guest)::before,
+body:not([data-themes*="highcontrast"]) #header:not(.header-guest)::after {
+	content: "";
+	position: absolute;
+	inset: var(--glass-bar-pad) var(--body-container-margin);
+	z-index: -1;
+	border-radius: var(--glass-bar-radius);
+	pointer-events: none;
+}
+body:not([data-themes*="highcontrast"]) #header:not(.header-guest)::before {
+	background: var(--glass-bar);
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
+	box-shadow: var(--glass-elev-1), var(--glass-bevel), 0 0 0 1px var(--glass-edge);
+}
+/* Gradient bevel: light on the left, theme color on the right */
+body:not([data-themes*="highcontrast"]) #header:not(.header-guest)::after {
+	padding: 1px;
+	background: linear-gradient(100deg, var(--glass-ring-1), var(--glass-ring-2) 30%, var(--glass-ring-2) 70%, var(--glass-ring-3));
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* Bar controls scaled up */
+body:not([data-themes*="highcontrast"]) #header:not(.header-guest) :is(.header-start, .unified-search-input) {
+	--default-clickable-area: var(--glass-bar-control);
+}
+body:not([data-themes*="highcontrast"]) #header:not(.header-guest) #nextcloud {
+	padding-inline-start: calc(var(--body-container-margin) + var(--glass-bar-inner) + var(--glass-bar-logo) + 10px);
+}
+body:not([data-themes*="highcontrast"]) #header:not(.header-guest) #nextcloud .logo {
+	width: var(--glass-bar-logo);
+	inset-inline-start: calc(var(--body-container-margin) + var(--glass-bar-inner) - 2px);
+}
+body:not([data-themes*="highcontrast"]) #header:not(.header-guest) :is(.material-design-icon, .icon-vue, .button-vue__icon) > svg,
+body:not([data-themes*="highcontrast"]) #header .app-menu__current-app-icon {
+	width: var(--glass-bar-icon) !important;
+	height: var(--glass-bar-icon) !important;
+}
+body:not([data-themes*="highcontrast"]) #header .app-menu__current-app-name {
+	font-size: calc(var(--default-font-size) + 1px);
+}
+body:not([data-themes*="highcontrast"]) #header .header-menu {
+	width: var(--glass-bar-menu) !important;
+}
+body:not([data-themes*="highcontrast"]) #header .header-menu__trigger {
+	--button-size: var(--glass-bar-menu) !important;
+}
+body:not([data-themes*="highcontrast"]) #header #user-menu .avatardiv {
+	--avatar-size: var(--glass-bar-avatar) !important;
+	width: var(--glass-bar-avatar) !important;
+	height: var(--glass-bar-avatar) !important;
+}
+/* Search field: recessed well in the pane */
+body:not([data-themes*="highcontrast"]) #header .unified-search-input__button {
+	height: calc(var(--glass-bar-control) - 4px);
+	border-radius: var(--border-radius-element);
+	box-shadow:
+		inset 0 1px 2px rgb(from var(--glass-shade) r g b / .35),
+		inset 0 0 0 1px rgba(255, 255, 255, .12),
+		0 1px 0 rgba(255, 255, 255, .10);
+}
+
+/* 4 · Frame (base layer) --------------------------------------------------- */
+body:not([data-themes*="highcontrast"]) #content-vue:not(.content--legacy):not(.with-sidebar--full) {
+	background: transparent;
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
+	box-shadow: var(--glass-elev-2), 0 0 0 1px var(--glass-edge);
+}
+body:not([data-themes*="highcontrast"]) #content-vue:not(.content--legacy):not(.with-sidebar--full)::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	pointer-events: none;
+	background: var(--glass-chrome);
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
+	box-shadow: var(--glass-bevel);
+}
+body:not([data-themes*="highcontrast"]) #content-vue:not(.content--legacy):not(.with-sidebar--full)::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1900;
+	border-radius: inherit;
+	pointer-events: none;
+	padding: 1px;
+	background: linear-gradient(145deg, var(--glass-ring-1), var(--glass-ring-2) 38%, var(--glass-ring-2) 62%, var(--glass-ring-3));
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+/* 5 · Navigation ----------------------------------------------------------- */
+@media (min-width: 1024px) {
+	body:not([data-themes*="highcontrast"]) #content-vue > .app-navigation {
+		background-color: transparent;
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+}
+@media (max-width: 1023px) {
+	body:not([data-themes*="highcontrast"]) #content-vue .app-navigation {
+		background-color: var(--glass-float);
+		box-shadow: var(--glass-elev-2), var(--glass-bevel);
+	}
+}
+body:not([data-themes*="highcontrast"]) #content-vue .app-navigation-entry__children {
+	background-color: transparent !important;
+}
+/* Active entry: glass plate with a glowing stripe */
+body:not([data-themes*="highcontrast"]) #content-vue .app-navigation-entry.active:not(.app-navigation-entry--legacy) {
+	box-shadow: inset 0 1px 0 var(--glass-ring), inset 0 0 0 1px var(--glass-accent);
+}
+body:not([data-themes*="highcontrast"]) #content-vue .app-navigation-entry.active:not(.app-navigation-entry--legacy)::before {
+	box-shadow: 0 0 10px 1px var(--glass-glow);
+}
+
+/* 6 · Floating sheets: content and sidebar --------------------------------- */
+@media (min-width: 1024px) {
+	body:not([data-themes*="highcontrast"]) #content-vue > :is(.app-content, .app-sidebar) {
+		align-self: stretch;
+		height: auto;
+		margin: var(--glass-gap) !important;
+		border: 0;
+		border-radius: calc(var(--body-container-radius) - var(--glass-gap) + 2px);
+		background: var(--glass-sheet);
+		box-shadow: var(--glass-elev-1), var(--glass-bevel), 0 0 0 1px var(--glass-edge);
+	}
+	body:not([data-themes*="highcontrast"]) #content-vue > .app-sidebar {
+		margin-inline-start: 0 !important;
+	}
+}
+@media (max-width: 1023px) {
+	body:not([data-themes*="highcontrast"]) #content-vue > :is(.app-content, .app-sidebar) {
+		background: var(--glass-sheet);
+	}
+}
+
+/* 7 · Inner layers: dividers, secondary text and sticky headers ------------ */
+/* Hover backgrounds, dividers, secondary buttons and app shadows:
+   translucent and using the theme palette instead of opaque greys */
+body:not([data-themes*="highcontrast"]) :is(#content-vue, .v-popper__inner, .header-menu__wrapper, .modal-container) {
+	--color-border: rgb(from var(--glass-ink) r g b / .14);
+	--color-border-dark: rgb(from var(--glass-ink) r g b / .22);
+	--color-background-hover: rgb(from var(--glass-ink) r g b / .07);
+	--color-background-dark: rgb(from var(--glass-ink) r g b / .10);
+	--color-background-darker: rgb(from var(--glass-ink) r g b / .16);
+	--color-primary-element-light: color-mix(in srgb, var(--color-primary-element) 16%, transparent);
+	--color-primary-element-light-hover: color-mix(in srgb, var(--color-primary-element) 26%, transparent);
+	--color-box-shadow: rgb(from var(--glass-shade) r g b / var(--glass-a-shadow));
+	--color-text-maxcontrast: var(--glass-muted);
+}
+body:not([data-themes*="highcontrast"]) :is(.v-popper__inner, .header-menu__wrapper, .modal-container, .toastify.dialogs) {
+	--color-text-maxcontrast: var(--color-text-maxcontrast-background-blur);
+}
+body:not([data-themes*="highcontrast"]) #content-vue :is(.files-list__filters, .files-list__thead, .files-list__tfoot, .app-details-toggle) {
+	background-color: var(--glass-sticky) !important;
+	-webkit-backdrop-filter: var(--glass-filter-sticky);
+	backdrop-filter: var(--glass-filter-sticky);
+}
+body:not([data-themes*="highcontrast"]) #content-vue .splitpanes__splitter {
+	background-color: transparent !important;
+}
+
+/* 8 · Components inside the sheets ---------------------------------------
+   Avatars: the container is round too (it used to leave a grey square) */
+body:not([data-themes*="highcontrast"]) .avatardiv:not(#_) {
+	border-radius: 50% !important;
+}
+/* Notecards: glass tinted per status, rounded edge and visible icon
+   (some apps ship old versions whose icon is nearly invisible in dark mode) */
+body:not([data-themes*="highcontrast"]) .notecard {
+	--glass-note: var(--color-element-info, var(--color-info-text));
+	--glass-note-text: var(--color-info-text);
+	border-radius: var(--border-radius-element) !important;
+	border-inline-start-color: var(--glass-note) !important;
+	background-color: color-mix(in srgb, var(--glass-note) 13%, transparent) !important;
+	box-shadow: var(--glass-bevel);
+}
+body:not([data-themes*="highcontrast"]) .notecard.notecard--success { --glass-note: var(--color-element-success, var(--color-success-text)); --glass-note-text: var(--color-success-text); }
+body:not([data-themes*="highcontrast"]) .notecard.notecard--warning { --glass-note: var(--color-element-warning, var(--color-warning-text)); --glass-note-text: var(--color-warning-text); }
+body:not([data-themes*="highcontrast"]) .notecard.notecard--error { --glass-note: var(--color-element-error, var(--color-error-text)); --glass-note-text: var(--color-error-text); }
+body:not([data-themes*="highcontrast"]) .notecard .notecard__icon {
+	color: var(--glass-note-text) !important;
+}
+/* Text fields: glass background and floating label without an opaque box */
+body:not([data-themes*="highcontrast"]) :is(#content-vue, .modal-container) .input-field__input {
+	background-color: var(--glass-field) !important;
+}
+body:not([data-themes*="highcontrast"]) #content-vue .input-field__input:is(:focus, :not(:placeholder-shown)) + .input-field__label {
+	background-color: var(--glass-float) !important;
+	-webkit-backdrop-filter: var(--glass-filter-sticky);
+	backdrop-filter: var(--glass-filter-sticky);
+}
+body:not([data-themes*="highcontrast"]) .modal-container .input-field__input:is(:focus, :not(:placeholder-shown)) + .input-field__label {
+	background-color: var(--glass-modal) !important;
+}
+/* Text editor (Notes, Collectives, Markdown) and Notes: no opaque square layers */
+body:not([data-themes*="highcontrast"]) :is(#content-vue, .modal-mask:not(.modal-mask--opaque)) :is(.text-editor, .text-editor__main, .text-editor .editor, .menubar-placeholder--with-slot, .note-container) {
+	background: transparent !important;
+}
+body:not([data-themes*="highcontrast"]) :is(#content-vue, .modal-container) .text-menubar {
+	background-color: var(--glass-sticky) !important;
+	-webkit-backdrop-filter: var(--glass-filter-sticky) !important;
+	backdrop-filter: var(--glass-filter-sticky) !important;
+}
+/* Folder Readme (Files rich workspace): glass card */
+body:not([data-themes*="highcontrast"]) #content-vue #rich-workspace div[contenteditable='false'] {
+	background-color: transparent !important;
+}
+body:not([data-themes*="highcontrast"]) #content-vue #rich-workspace .text-editor {
+	background: var(--glass-card) !important;
+	border-radius: var(--border-radius-container-large);
+	box-shadow: var(--glass-elev-1), var(--glass-bevel), 0 0 0 1px var(--glass-edge);
+}
+body:not([data-themes*="highcontrast"]) #content-vue #rich-workspace .editor__content-wrapper {
+	overflow: auto !important;
+}
+/* Deck: glass column headers and cards, without the grey gradient */
+body:not([data-themes*="highcontrast"]) #content-vue :is(.dashboard-column__header, .stack__header) {
+	background-color: var(--glass-sticky) !important;
+	-webkit-backdrop-filter: var(--glass-filter-sticky);
+	backdrop-filter: var(--glass-filter-sticky);
+	border-radius: var(--border-radius-element);
+	box-shadow: var(--glass-bevel), var(--glass-elev-1);
+}
+body:not([data-themes*="highcontrast"]) #content-vue :is(.dashboard-column__header, .stack__header)::before {
+	display: none !important;
+}
+body:not([data-themes*="highcontrast"]) #content-vue.app-deck .card {
+	background-color: var(--glass-card) !important;
+	box-shadow: var(--glass-bevel), var(--glass-elev-1);
+}
+
+/* 9 · App menu: flat glass plates ------------------------------------------ */
+/* Separates the menu from the floating bar (Nextcloud pins it to the button) */
+body:not([data-themes*="highcontrast"]) .app-menu__popover-base .v-popper__wrapper {
+	margin-block-start: calc((var(--header-height) - var(--glass-bar-control)) / 2 - var(--glass-bar-pad) + 6px);
+}
+body:not([data-themes*="highcontrast"]) .app-menu__popover-base .app-menu__popover {
+	background-color: transparent !important;
+}
+body:not([data-themes*="highcontrast"]) .app-menu__popover-base .app-item__circle {
+	border-radius: var(--glass-tile-radius) !important;
+}
+body:not([data-themes*="highcontrast"]) .app-menu__popover-base .app-item:not(.app-item--outlined) .app-item__circle {
+	background-color: rgb(from var(--color-primary-element) r g b / .84) !important;
+	background-image: none !important;
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, .45),
+		inset 0 -1px 0 rgba(0, 0, 0, .18),
+		inset 0 0 0 1px rgba(255, 255, 255, .14),
+		0 1px 2px rgba(0, 0, 0, .12),
+		0 4px 10px var(--glass-glow) !important;
+}
+body:not([data-themes*="highcontrast"]) .app-menu__popover-base .app-item--outlined .app-item__circle {
+	background-color: rgba(255, 255, 255, .06) !important;
+	box-shadow:
+		inset 0 0 0 1.5px var(--color-border-maxcontrast),
+		inset 0 1px 0 var(--glass-ring) !important;
+}
+body:not([data-themes*="highcontrast"]) .app-menu__popover-base .app-item__unread {
+	top: -3px;
+	inset-inline-end: -3px;
+}
+/* Hover and active app: translucent plate behind the tile */
+body:not([data-themes*="highcontrast"]) .app-menu__popover-base .app-item:is(:hover, :focus-visible) {
+	background-color: rgb(from var(--color-primary-element) r g b / .12) !important;
+}
+body:not([data-themes*="highcontrast"]) .app-menu__popover-base .app-item:is(:hover, .app-item--active):not(:focus-visible) {
+	box-shadow: inset 0 1px 0 var(--glass-ring), inset 0 0 0 1px var(--glass-accent);
+}
+body:not([data-themes*="highcontrast"]) .app-menu__popover-base .app-item--active:not(:hover, :focus-visible) {
+	background-color: rgb(from var(--color-primary-element) r g b / .07);
+}
+
+/* 10 · Popovers, action menus and top bar menus ---------------------------- */
+body:not([data-themes*="highcontrast"]) :is(.v-popper--theme-nc-popover-9, .v-popper--theme-nc-popover-8, .v-popper--theme-dropdown).v-popper__popper {
+	filter: none !important;
+}
+body:not([data-themes*="highcontrast"]) :is(.v-popper--theme-nc-popover-9, .v-popper--theme-nc-popover-8, .v-popper--theme-dropdown).v-popper__popper .v-popper__wrapper {
+	box-shadow: var(--glass-elev-3) !important;
+}
+body:not([data-themes*="highcontrast"]) :is(.v-popper--theme-nc-popover-9, .v-popper--theme-nc-popover-8, .v-popper--theme-dropdown).v-popper__popper .v-popper__inner,
+body:not([data-themes*="highcontrast"]) #header .header-menu__wrapper {
+	background: var(--glass-float) !important;
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
+	box-shadow:
+		inset 0 -1px 0 var(--glass-ring-3),
+		var(--glass-bevel),
+		0 0 0 1px var(--glass-edge);
+}
+body:not([data-themes*="highcontrast"]) #header .header-menu__wrapper {
+	filter: none !important;
+	top: calc(var(--header-height) - var(--glass-bar-pad) + 5px);
+	border-radius: var(--border-radius-container-large) !important;
+	box-shadow:
+		var(--glass-elev-3),
+		inset 0 -1px 0 var(--glass-ring-3),
+		var(--glass-bevel),
+		0 0 0 1px var(--glass-edge);
+}
+body:not([data-themes*="highcontrast"]) #header .header-menu__caret,
+body:not([data-themes*="highcontrast"]) :is(.v-popper--theme-nc-popover-9, .v-popper--theme-nc-popover-8, .v-popper--theme-dropdown) .v-popper__arrow-container {
+	display: none !important;
+}
+
+/* 11 · Dialogs: tinted veil + depth blur (viewer untouched) ---------------- */
+body:not([data-themes*="highcontrast"]) .modal-mask:not(.modal-mask--opaque) {
+	-webkit-backdrop-filter: var(--glass-mask-filter);
+	backdrop-filter: var(--glass-mask-filter);
+}
+body:not([data-themes*="highcontrast"]) .modal-mask:not(.modal-mask--opaque):not(.modal-mask--light) {
+	background-color: var(--glass-veil) !important;
+}
+body:not([data-themes*="highcontrast"]) .modal-mask:not(.modal-mask--opaque) .modal-container {
+	background: var(--glass-modal) !important;
+	border-radius: var(--border-radius-container-large) !important;
+	box-shadow:
+		var(--glass-elev-3),
+		inset 0 -1px 0 var(--glass-ring-3),
+		var(--glass-bevel) !important;
+}
+
+/* 12 · Toasts -------------------------------------------------------------- */
+body:not([data-themes*="highcontrast"]) .toastify.dialogs {
+	background-color: var(--glass-float) !important;
+	-webkit-backdrop-filter: var(--glass-filter);
+	backdrop-filter: var(--glass-filter);
+	box-shadow: var(--glass-elev-2), var(--glass-bevel) !important;
+}
+
+/* 13 · Accessibility and compatibility ------------------------------------- */
+@media (prefers-reduced-transparency: reduce) {
+	body:not([data-themes*="highcontrast"]) {
+		--glass-a-chrome: 1 !important;
+		--glass-a-sheet: 1 !important;
+		--glass-a-sticky: 1 !important;
+		--glass-a-float: 1 !important;
+		--glass-a-modal: 1 !important;
+		--glass-bar: var(--color-background-plain) !important;
+		--glass-filter: none !important;
+		--glass-filter-sticky: none !important;
+		--glass-mask-filter: none !important;
+	}
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	body:not([data-themes*="highcontrast"]) {
+		--glass-a-chrome: .94 !important;
+		--glass-a-sheet: 1 !important;
+		--glass-a-sticky: 1 !important;
+		--glass-a-float: .97 !important;
+		--glass-a-modal: 1 !important;
+		--glass-bar: color-mix(in srgb, var(--color-background-plain) 85%, transparent) !important;
+	}
+}
