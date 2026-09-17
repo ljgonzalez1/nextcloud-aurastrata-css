@@ -1,18 +1,13 @@
 /* =====================================================================
-   Aurastrata · glass theme for Nextcloud 34 · v2
+   Aurastrata - glass theme for Nextcloud 34
+   
    Theme-tinted glass (aurora) arranged as floating, elevated panes
-   (strata): top bar → frame → sheets → menus → dialogs.
-   Semi-flat glass: every surface is flat and only the edge shows
-   curvature (lit top edge, shaded bottom edge, thin rim).
-   v2: top bar +50 %, shadows and tints from the theme palette,
-   round avatars, notecards, inputs, Text/Notes editor and Deck in glass.
-   Paste into: Administration settings → Theming → Custom CSS
    ===================================================================== */
 
 /* 1 · Variables (light mode and base) ---------------------------------
    None of this applies with high contrast: Nextcloud stays native. */
 body:not([data-themes*="highcontrast"]) {
-	/* Top bar: +50 % (50 → 75 px). The pane grows from 40 to 60 px and the
+	/* Top bar: +50 % (50 -> 75 px). The pane grows from 40 to 60 px and the
 	   margin around it from 5 to 7.5 px per side (the extra 10 % padding). */
 	--glass-bar-height: 75px;
 	--glass-bar-pad: 7.5px;
