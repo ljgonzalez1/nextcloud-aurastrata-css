@@ -37,7 +37,7 @@ occ app:enable theming_customcss
 
 ## Compatibility
 
-Designed for **Nextcloud 34**.
+Designed for **Nextcloud 34** and **Nextcloud 35**.
 
 ## Screenshots
 
@@ -46,4 +46,8 @@ Designed for **Nextcloud 34**.
 
 ### Dark theme
 ![Dark theme screenshot](assets/dark_screenshot.png)
+
+---
+
+Still needs some polishing. Feel free to contribute with changes.
 
